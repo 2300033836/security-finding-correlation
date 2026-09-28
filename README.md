@@ -61,6 +61,9 @@ After deduplication, the system performs basic correlation between distinct find
 
 Two tools may report:
 
+- `Open SSH Port`
+- `SSH Service Exposed`
+
 Although the wording is different, they may represent the same underlying issue.
 
 The system uses semantic similarity together with host and port information to determine whether they should be treated as duplicates.
@@ -76,5 +79,5 @@ The project includes automated tests for:
 
 Run the complete test suite with:
 
-
+```bash
 python -m unittest discover -s tests -v
