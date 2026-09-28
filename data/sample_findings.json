@@ -1,0 +1,34 @@
+[
+    {
+        "tool": "Nmap",
+        "title": "Open SSH Port",
+        "description": "SSH service is accessible on port 22",
+        "severity": "medium",
+        "host": "192.168.1.10",
+        "port": 22
+    },
+    {
+        "tool": "Nuclei",
+        "title": "SSH Service Exposed",
+        "description": "An SSH service is exposed on port 22",
+        "severity": "medium",
+        "host": "192.168.1.10",
+        "port": 22
+    },
+    {
+        "tool": "Semgrep",
+        "title": "Potential SQL Injection",
+        "description": "User-controlled input may reach a SQL query without proper validation",
+        "severity": "high",
+        "host": "192.168.1.10",
+        "port": 8080
+    },
+    {
+        "tool": "ZAP",
+        "title": "SQL Injection",
+        "description": "A user input parameter appears vulnerable to SQL injection",
+        "severity": "high",
+        "host": "192.168.1.10",
+        "port": 8080
+    }
+]
