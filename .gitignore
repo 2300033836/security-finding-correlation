@@ -1,6 +1,31 @@
+# Python
 .venv/
+venv/
 __pycache__/
-*.pyc
-.pytest_cache/
-.vscode/
+*.py[cod]
+
+# Secrets and environment settings
 .env
+.env.*
+!.env.example
+
+# Local editor and operating-system files
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs and temporary files
+*.log
+
+# Uploaded reports and local test artifacts
+uploads/
+
+# Local security scan data and generated reports
+input/*
+!input/.gitkeep
+reports/*
+!reports/.gitkeep
+nmap_real_report.xml
+
+# Uploaded files
+uploads/

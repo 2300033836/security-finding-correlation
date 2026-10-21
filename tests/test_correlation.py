@@ -1,81 +1,102 @@
 import unittest
 
-from src.correlate import are_correlated, find_correlations
+from src.correlate import (
+    are_correlated,
+    find_correlations
+)
 
 
 class TestCorrelation(unittest.TestCase):
 
-    def setUp(self):
+    def test_same_host_and_same_port(self):
 
-        self.finding1 = {
+        finding1 = {
             "finding_id": "F001",
-            "source_tool": "Nmap",
-            "title": "Open SSH Port",
-            "description": "SSH service is accessible on port 22",
-            "severity": "medium",
             "host": "192.168.1.10",
-            "port": 22
+            "port": 80
         }
 
-        self.finding2 = {
+        finding2 = {
             "finding_id": "F002",
-            "source_tool": "ZAP",
-            "title": "SQL Injection",
-            "description": "A user input parameter appears vulnerable to SQL injection",
-            "severity": "high",
             "host": "192.168.1.10",
-            "port": 8080
+            "port": 80
         }
 
-        self.finding3 = {
-            "finding_id": "F003",
-            "source_tool": "Nuclei",
-            "title": "Open HTTP Port",
-            "description": "HTTP service is accessible on port 80",
-            "severity": "low",
+        self.assertTrue(
+            are_correlated(
+                finding1,
+                finding2
+            )
+        )
+
+
+    def test_same_host_different_port(self):
+
+        finding1 = {
+            "finding_id": "F001",
+            "host": "192.168.1.10",
+            "port": 80
+        }
+
+        finding2 = {
+            "finding_id": "F002",
+            "host": "192.168.1.10",
+            "port": 443
+        }
+
+        self.assertTrue(
+            are_correlated(
+                finding1,
+                finding2
+            )
+        )
+
+
+    def test_different_host(self):
+
+        finding1 = {
+            "finding_id": "F001",
+            "host": "192.168.1.10",
+            "port": 80
+        }
+
+        finding2 = {
+            "finding_id": "F002",
             "host": "192.168.1.20",
             "port": 80
         }
 
-
-    def test_findings_on_same_host_are_correlated(self):
-
-        result = are_correlated(
-            self.finding1,
-            self.finding2
+        self.assertFalse(
+            are_correlated(
+                finding1,
+                finding2
+            )
         )
-
-        print("\nSame host correlation:", result)
-
-        self.assertTrue(result)
-
-
-    def test_findings_on_different_hosts_are_not_correlated(self):
-
-        result = are_correlated(
-            self.finding1,
-            self.finding3
-        )
-
-        print("\nDifferent host correlation:", result)
-
-        self.assertFalse(result)
 
 
     def test_find_correlations(self):
 
         findings = [
-            self.finding1,
-            self.finding2,
-            self.finding3
+            {
+                "finding_id": "F001",
+                "host": "192.168.1.10",
+                "port": 80
+            },
+            {
+                "finding_id": "F002",
+                "host": "192.168.1.10",
+                "port": 80
+            },
+            {
+                "finding_id": "F003",
+                "host": "192.168.1.20",
+                "port": 443
+            }
         ]
 
-        correlations = find_correlations(findings)
-
-        print("\nCorrelations found:")
-
-        for correlation in correlations:
-            print(correlation)
+        correlations = find_correlations(
+            findings
+        )
 
         self.assertEqual(
             len(correlations),
@@ -83,13 +104,66 @@ class TestCorrelation(unittest.TestCase):
         )
 
         self.assertEqual(
-            correlations[0]["finding1"],
-            "F001"
+            correlations[0]["reason"],
+            "Same host and same port"
+        )
+
+
+    def test_same_host_and_same_port_different_findings(self):
+
+        findings = [
+            {
+                "finding_id": "F001",
+                "title": "Open HTTP Port",
+                "host": "192.168.1.10",
+                "port": 80
+            },
+            {
+                "finding_id": "F002",
+                "title": "Missing Security Headers",
+                "host": "192.168.1.10",
+                "port": 80
+            }
+        ]
+
+        correlations = find_correlations(
+            findings
         )
 
         self.assertEqual(
-            correlations[0]["finding2"],
-            "F002"
+            len(correlations),
+            1
+        )
+
+        self.assertEqual(
+            correlations[0]["reason"],
+            "Same host and same port"
+        )
+
+
+    def test_same_host_different_port_can_be_correlated(self):
+
+        finding1 = {
+            "finding_id": "F001",
+            "title": "Open HTTP Port",
+            "host": "192.168.1.10",
+            "port": 80
+        }
+
+        finding2 = {
+            "finding_id": "F002",
+            "title": "SQL Injection",
+            "host": "192.168.1.10",
+            "port": 8080
+        }
+
+        correlations = find_correlations(
+            [finding1, finding2]
+        )
+
+        self.assertEqual(
+            len(correlations),
+            1
         )
 
         self.assertEqual(

@@ -45,7 +45,9 @@ class TestPipeline(unittest.TestCase):
 
     def test_complete_pipeline(self):
 
-        result = process_findings(self.findings)
+        result = process_findings(
+            self.findings
+        )
 
         print("\n--- Pipeline Result ---")
 
@@ -69,20 +71,52 @@ class TestPipeline(unittest.TestCase):
             len(result["correlations"])
         )
 
+
+        # ------------------------------------------
+        # Check original findings
+        # ------------------------------------------
+
         self.assertEqual(
             result["original_count"],
             4
         )
+
+
+        # ------------------------------------------
+        # Check duplicate detection
+        # ------------------------------------------
 
         self.assertEqual(
             len(result["duplicate_pairs"]),
             2
         )
 
+
+        # ------------------------------------------
+        # Check merged findings
+        # ------------------------------------------
+
         self.assertEqual(
             len(result["merged_findings"]),
             2
         )
+
+
+                # ------------------------------------------
+        # Check correlation
+        #
+        # Current rule:
+        # Findings on the same host are correlated.
+        #
+        # After deduplication, the two remaining
+        # findings are:
+        #
+        # SSH  -> port 22
+        # SQL  -> port 8080
+        #
+        # They are on the same host, so they are
+        # correlated.
+        # ------------------------------------------
 
         self.assertEqual(
             len(result["correlations"]),
