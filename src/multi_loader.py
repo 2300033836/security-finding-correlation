@@ -1,3 +1,4 @@
+
 from src.loaders import (
     load_nmap_findings,
     load_nuclei_findings,
@@ -6,27 +7,35 @@ from src.loaders import (
 
 
 def load_all_findings(
-    nmap_file,
-    nuclei_file,
-    semgrep_file
+    nmap_file=None,
+    nuclei_file=None,
+    semgrep_file=None
 ):
+    """
+    Load findings from any combination of Nmap,
+    Nuclei, and Semgrep reports.
+    """
 
-    nmap_findings = load_nmap_findings(
-        nmap_file
-    )
+    all_findings = []
 
-    nuclei_findings = load_nuclei_findings(
-        nuclei_file
-    )
+    if nmap_file:
+        all_findings.extend(
+            load_nmap_findings(nmap_file)
+        )
 
-    semgrep_findings = load_semgrep_findings(
-        semgrep_file
-    )
+    if nuclei_file:
+        all_findings.extend(
+            load_nuclei_findings(nuclei_file)
+        )
 
-    all_findings = (
-        nmap_findings
-        + nuclei_findings
-        + semgrep_findings
-    )
+    if semgrep_file:
+        all_findings.extend(
+            load_semgrep_findings(semgrep_file)
+        )
+
+    if not all_findings:
+        raise ValueError(
+            "No security findings were found in the uploaded reports."
+        )
 
     return all_findings

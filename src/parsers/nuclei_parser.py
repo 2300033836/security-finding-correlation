@@ -3,12 +3,45 @@ import json
 from pathlib import Path
 
 
+def extract_findings(data):
+    """Extract finding records from common Nuclei JSON structures."""
+
+    if isinstance(data, list):
+        return [
+            item for item in data
+            if isinstance(item, dict)
+        ]
+
+    if isinstance(data, dict):
+        # Handle common report wrappers.
+        for key in ("results", "findings", "issues"):
+            if isinstance(data.get(key), list):
+                return extract_findings(data[key])
+
+        return [data]
+
+    return []
+
+
 def parse_nuclei_json(file_path):
     """
-    Parse Nuclei output in JSONL format (one JSON object per line)
-    or standard JSON format (a single object/list).
+    Parse Nuclei reports in:
+    1. Standard JSON format
+    2. JSON array format
+    3. JSONL format (one JSON object per line)
     """
+
     path = Path(file_path)
+
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Nuclei report not found: {path}"
+        )
+
+    if path.suffix.lower() not in (".json", ".jsonl"):
+        raise ValueError(
+            "Unsupported Nuclei format. Use .json or .jsonl"
+        )
 
     with path.open("r", encoding="utf-8-sig") as file:
         content = file.read().strip()
@@ -16,23 +49,15 @@ def parse_nuclei_json(file_path):
     if not content:
         return []
 
-    # First, try parsing the file as one standard JSON document.
+    # First, attempt standard JSON parsing.
     try:
         data = json.loads(content)
-
-        if isinstance(data, list):
-            return data
-
-        if isinstance(data, dict):
-            # Some tools wrap findings in a results list.
-            if isinstance(data.get("results"), list):
-                return data["results"]
-            return [data]
+        return extract_findings(data)
 
     except json.JSONDecodeError:
         pass
 
-    # If that failed, parse it as JSON Lines (JSONL).
+    # If standard JSON fails, parse as JSONL.
     findings = []
 
     for line_number, line in enumerate(content.splitlines(), start=1):
@@ -43,16 +68,13 @@ def parse_nuclei_json(file_path):
 
         try:
             item = json.loads(line)
+
         except json.JSONDecodeError as error:
             raise ValueError(
-                f"Invalid Nuclei JSON/JSONL at line {line_number}: {error}"
+                f"Invalid Nuclei JSON/JSONL at "
+                f"line {line_number}: {error}"
             ) from error
 
-        if isinstance(item, dict):
-            findings.append(item)
-        elif isinstance(item, list):
-            findings.extend(
-                entry for entry in item if isinstance(entry, dict)
-            )
+        findings.extend(extract_findings(item))
 
     return findings

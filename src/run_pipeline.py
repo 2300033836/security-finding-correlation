@@ -1,12 +1,12 @@
 
 from src.pipeline import run_pipeline
 
-# Run Nmap XML + real Nuclei JSONL + Semgrep JSON
+# Run the three duplicate-test reports.
 result = run_pipeline(
     (
-        "input/nmap_results.json",
-        "input/nuclei_real_results.json",
-        "input/semgrep_results.json"
+        "input/nmap_duplicate_test.json",
+        "input/nuclei_duplicate_test.jsonl",
+        "input/semgrep_duplicate_test.json"
     ),
     "multi"
 )

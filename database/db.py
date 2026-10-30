@@ -1,3 +1,4 @@
+
 import os
 import mysql.connector
 from dotenv import load_dotenv
@@ -28,7 +29,6 @@ def insert_finding(finding):
     connection = get_connection()
     cursor = connection.cursor()
 
-
     query = """
         INSERT INTO findings (
             finding_id,
@@ -42,20 +42,10 @@ def insert_finding(finding):
         VALUES (%s, %s, %s, %s, %s, %s, %s)
     """
 
-
-    # Normal finding uses source_tool.
-    # Merged finding uses source_tools.
-
     if "source_tools" in finding:
-
-        source_tool = ", ".join(
-            finding["source_tools"]
-        )
-
+        source_tool = ", ".join(finding["source_tools"])
     else:
-
         source_tool = finding["source_tool"]
-
 
     values = (
         finding["finding_id"],
@@ -67,15 +57,9 @@ def insert_finding(finding):
         finding["port"]
     )
 
-
-    cursor.execute(
-        query,
-        values
-    )
-
+    cursor.execute(query, values)
 
     connection.commit()
-
 
     cursor.close()
     connection.close()
@@ -90,7 +74,6 @@ def insert_findings(findings):
     connection = get_connection()
     cursor = connection.cursor()
 
-
     query = """
         INSERT IGNORE INTO findings (
             finding_id,
@@ -104,28 +87,12 @@ def insert_findings(findings):
         VALUES (%s, %s, %s, %s, %s, %s, %s)
     """
 
-
     for finding in findings:
 
-        # ------------------------------------------
-        # Handle merged findings
-        # ------------------------------------------
-
         if "source_tools" in finding:
-
-            source_tool = ", ".join(
-                finding["source_tools"]
-            )
-
-
-        # ------------------------------------------
-        # Handle normal findings
-        # ------------------------------------------
-
+            source_tool = ", ".join(finding["source_tools"])
         else:
-
             source_tool = finding["source_tool"]
-
 
         values = (
             finding["finding_id"],
@@ -137,15 +104,9 @@ def insert_findings(findings):
             finding["port"]
         )
 
-
-        cursor.execute(
-            query,
-            values
-        )
-
+        cursor.execute(query, values)
 
     connection.commit()
-
 
     cursor.close()
     connection.close()
@@ -155,13 +116,10 @@ def insert_findings(findings):
 # INSERT DUPLICATE MATCHES
 # ============================================================
 
-def insert_duplicate_matches(
-    duplicate_pairs
-):
+def insert_duplicate_matches(duplicate_pairs):
 
     connection = get_connection()
     cursor = connection.cursor()
-
 
     query = """
         INSERT IGNORE INTO duplicate_matches (
@@ -172,7 +130,6 @@ def insert_duplicate_matches(
         VALUES (%s, %s, %s)
     """
 
-
     for pair in duplicate_pairs:
 
         values = (
@@ -181,15 +138,9 @@ def insert_duplicate_matches(
             pair["similarity"]
         )
 
-
-        cursor.execute(
-            query,
-            values
-        )
-
+        cursor.execute(query, values)
 
     connection.commit()
-
 
     cursor.close()
     connection.close()
@@ -199,13 +150,10 @@ def insert_duplicate_matches(
 # INSERT CORRELATIONS
 # ============================================================
 
-def insert_correlations(
-    correlations
-):
+def insert_correlations(correlations):
 
     connection = get_connection()
     cursor = connection.cursor()
-
 
     query = """
         INSERT IGNORE INTO correlations (
@@ -216,7 +164,6 @@ def insert_correlations(
         VALUES (%s, %s, %s)
     """
 
-
     for correlation in correlations:
 
         values = (
@@ -225,15 +172,9 @@ def insert_correlations(
             correlation["reason"]
         )
 
-
-        cursor.execute(
-            query,
-            values
-        )
-
+        cursor.execute(query, values)
 
     connection.commit()
-
 
     cursor.close()
     connection.close()
@@ -247,10 +188,7 @@ def get_all_findings():
 
     connection = get_connection()
 
-    cursor = connection.cursor(
-        dictionary=True
-    )
-
+    cursor = connection.cursor(dictionary=True)
 
     query = """
         SELECT
@@ -266,18 +204,12 @@ def get_all_findings():
         ORDER BY id
     """
 
-
-    cursor.execute(
-        query
-    )
-
+    cursor.execute(query)
 
     findings = cursor.fetchall()
 
-
     cursor.close()
     connection.close()
-
 
     return findings
 
@@ -290,32 +222,40 @@ def get_duplicate_matches():
 
     connection = get_connection()
 
-    cursor = connection.cursor(
-        dictionary=True
-    )
-
+    cursor = connection.cursor(dictionary=True)
 
     query = """
         SELECT
-            finding1_id,
-            finding2_id,
-            similarity
-        FROM duplicate_matches
-        ORDER BY id
+            dm.finding1_id,
+            dm.finding2_id,
+            dm.similarity,
+
+            f1.host AS host1,
+            f2.host AS host2,
+
+            f1.port AS port1,
+            f2.port AS port2,
+
+            f1.source_tool AS source_tool1,
+            f2.source_tool AS source_tool2
+
+        FROM duplicate_matches dm
+
+        LEFT JOIN findings f1
+            ON dm.finding1_id = f1.finding_id
+
+        LEFT JOIN findings f2
+            ON dm.finding2_id = f2.finding_id
+
+        ORDER BY dm.id
     """
 
-
-    cursor.execute(
-        query
-    )
-
+    cursor.execute(query)
 
     duplicates = cursor.fetchall()
 
-
     cursor.close()
     connection.close()
-
 
     return duplicates
 
@@ -328,10 +268,7 @@ def get_correlations():
 
     connection = get_connection()
 
-    cursor = connection.cursor(
-        dictionary=True
-    )
-
+    cursor = connection.cursor(dictionary=True)
 
     query = """
         SELECT
@@ -342,20 +279,16 @@ def get_correlations():
         ORDER BY id
     """
 
-
-    cursor.execute(
-        query
-    )
-
+    cursor.execute(query)
 
     correlations = cursor.fetchall()
-
 
     cursor.close()
     connection.close()
 
-
     return correlations
+
+
 # ============================================================
 # CLEAR PREVIOUS PIPELINE RESULTS
 # ============================================================
@@ -365,17 +298,9 @@ def clear_pipeline_results():
     connection = get_connection()
     cursor = connection.cursor()
 
-    cursor.execute(
-        "DELETE FROM correlations"
-    )
-
-    cursor.execute(
-        "DELETE FROM duplicate_matches"
-    )
-
-    cursor.execute(
-        "DELETE FROM findings"
-    )
+    cursor.execute("DELETE FROM correlations")
+    cursor.execute("DELETE FROM duplicate_matches")
+    cursor.execute("DELETE FROM findings")
 
     connection.commit()
 

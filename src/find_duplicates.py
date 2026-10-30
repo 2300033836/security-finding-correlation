@@ -1,3 +1,4 @@
+
 try:
     from src.deduplicate import are_duplicates, merge_findings
 except ModuleNotFoundError:
@@ -19,10 +20,29 @@ def find_duplicate_pairs(findings):
             )
 
             if is_duplicate:
+                host1 = finding1.get("host")
+                host2 = finding2.get("host")
+
+                port1 = finding1.get("port")
+                port2 = finding2.get("port")
+
                 duplicate_pairs.append({
                     "finding1": finding1["finding_id"],
                     "finding2": finding2["finding_id"],
-                    "similarity": similarity
+                    "similarity": similarity,
+                    "host_match": bool(
+                        host1 and host2 and
+                        str(host1).strip().lower() ==
+                        str(host2).strip().lower()
+                    ),
+                    "port_match": bool(
+                        port1 is not None and
+                        port2 is not None and
+                        str(port1).strip() ==
+                        str(port2).strip()
+                    ),
+                    "host": host1,
+                    "port": port1
                 })
 
     return duplicate_pairs

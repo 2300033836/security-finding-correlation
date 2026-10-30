@@ -1,1205 +1,1580 @@
+
 <!DOCTYPE html>
-
 <html lang="en">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Finding Correlation Dashboard</title>
 
-
-<meta charset="UTF-8">
-
-<meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"    
->
-<title>
-    Security Finding Correlation Dashboard
-</title>
-<style>
-
-    * {
-        box-sizing: border-box;
-    }
-
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f4f6f8;
-        color: #222;
-    }
-
-    .container {
-        width: 92%;
-        max-width: 1400px;
-        margin: 30px auto;
-    }
-
-    h1 {
-        margin-bottom: 8px;
-    }
-
-    .subtitle {
-        color: #666;
-        margin-bottom: 25px;
-    }
-
-    .card {
-        background: white;
-        padding: 24px;
-        margin-bottom: 25px;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    }
-
-    .card h2 {
-        margin-top: 0;
-    }
-
-    .upload-grid {
-        display: grid;
-        grid-template-columns:
-            repeat(3, 1fr);
-
-        gap: 20px;
-
-        margin-top: 20px;
-    }
-
-    .upload-box {
-        border: 2px dashed #ccc;
-        padding: 20px;
-        border-radius: 8px;
-        background: #fafafa;
-    }
-
-    .upload-box h3 {
-        margin-top: 0;
-    }
-
-    input[type="file"] {
-        width: 100%;
-        margin-top: 10px;
-    }
-
-    button {
-        padding: 11px 18px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        margin-right: 8px;
-        margin-top: 10px;
-    }
-
-    #upload-button {
-        background: #2563eb;
-        color: white;
-    }
-
-    #run-pipeline-button {
-        background: #16a34a;
-        color: white;
-    }
-
-    #refresh-dashboard-button {
-        background: #555;
-        color: white;
-    }
-
-    #download-report-button {
-        background: #7c3aed;
-        color: white;
-    }
-
-    button:hover {
-        opacity: 0.9;
-    }
-
-    .status {
-        margin-top: 15px;
-        padding: 12px;
-        border-radius: 6px;
-        display: none;
-    }
-
-    .success {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .error {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .info {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-
-    .file-status {
-        margin-top: 15px;
-        padding: 10px;
-        background: #f1f5f9;
-        border-radius: 6px;
-    }
-
-    .summary-grid {
-        display: grid;
-        grid-template-columns:
-            repeat(3, 1fr);
-
-        gap: 20px;
-    }
-
-    .summary-card {
-        padding: 20px;
-        border-radius: 8px;
-        background: #f8fafc;
-        text-align: center;
-    }
-
-    .summary-number {
-        font-size: 32px;
-        font-weight: bold;
-        margin-top: 8px;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 15px;
-    }
-
-    th,
-    td {
-        border: 1px solid #ddd;
-        padding: 10px;
-        text-align: left;
-    }
-
-    th {
-        background: #f1f5f9;
-    }
-    
-
-    tr:nth-child(even) {
-        background: #fafafa;
-    }
-
-    .severity-high {
-        color: #dc2626;
-        font-weight: bold;
-    }
-
-    .severity-medium {
-        color: #d97706;
-        font-weight: bold;
-    }
-
-    .severity-low {
-        color: #16a34a;
-        font-weight: bold;
-    }
-
-    .empty {
-        color: #777;
-        padding: 15px 0;
-    }
-
-    @media (max-width: 900px) {
-
-        .upload-grid,
-        .summary-grid {
-            grid-template-columns: 1fr;
+    <style>
+        :root {
+            --bg: #0b1120;
+            --panel: #121c2e;
+            --panel-light: #18253a;
+            --border: #26364e;
+            --text: #e8eef8;
+            --muted: #91a1b8;
+            --blue: #60a5fa;
+            --cyan: #22d3ee;
+            --green: #34d399;
+            --red: #fb7185;
+            --orange: #fb923c;
+            --yellow: #facc15;
         }
 
-    }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
-</style>
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: Inter, "Segoe UI", Arial, sans-serif;
+            min-height: 100vh;
+        }
 
+        .container {
+            width: min(1450px, 94%);
+            margin: auto;
+            padding: 30px 0 50px;
+        }
 
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .brand-icon {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #2563eb, #0891b2);
+            font-size: 24px;
+        }
+
+        .eyebrow {
+            color: var(--cyan);
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        h1 {
+            font-size: 25px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 13px;
+            margin-top: 6px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            padding: 10px 15px;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            color: var(--muted);
+            font-size: 12px;
+            background: var(--panel);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--green);
+        }
+
+        .section {
+            margin-top: 28px;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .section-heading h2 {
+            font-size: 16px;
+            font-weight: 650;
+        }
+
+        .section-heading p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .upload-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+        }
+
+        .upload-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            transition: border-color .2s, transform .2s;
+        }
+
+        .upload-card:hover {
+            border-color: var(--blue);
+            transform: translateY(-2px);
+        }
+
+        .tool-icon {
+            width: 38px;
+            height: 38px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: var(--panel-light);
+            font-size: 19px;
+            margin-bottom: 13px;
+        }
+
+        .upload-card h3 {
+            font-size: 15px;
+            margin-bottom: 6px;
+        }
+
+        .upload-card p {
+            color: var(--muted);
+            font-size: 12px;
+            margin-bottom: 15px;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        input[type="file"]::file-selector-button {
+            background: var(--panel-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            border-radius: 7px;
+            margin-right: 9px;
+            cursor: pointer;
+        }
+
+        .upload-name {
+            color: var(--cyan);
+            font-size: 11px;
+            margin-top: 10px;
+            min-height: 14px;
+            overflow-wrap: anywhere;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 17px;
+        }
+
+        button {
+            border: 0;
+            border-radius: 8px;
+            padding: 11px 16px;
+            font-size: 12px;
+            font-weight: 650;
+            cursor: pointer;
+            transition: opacity .2s, transform .2s;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .primary {
+            background: linear-gradient(135deg, #2563eb, #0891b2);
+            color: white;
+        }
+
+        .secondary {
+            background: var(--panel-light);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .success-button {
+            background: #123c37;
+            border: 1px solid #176b5c;
+            color: #6ee7b7;
+        }
+
+        .danger-button {
+            background: #451d2b;
+            border: 1px solid #813348;
+            color: #fda4af;
+        }
+
+        #message {
+            display: none;
+            margin-top: 15px;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            overflow-wrap: anywhere;
+        }
+
+        #message.success {
+            display: block;
+            background: #10352f;
+            color: #6ee7b7;
+            border: 1px solid #176b5c;
+        }
+
+        #message.error {
+            display: block;
+            background: #3b1c29;
+            color: #fda4af;
+            border: 1px solid #813348;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .stat-card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 13px;
+            padding: 19px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::after {
+            content: "";
+            position: absolute;
+            width: 65px;
+            height: 65px;
+            border-radius: 50%;
+            right: -25px;
+            top: -25px;
+            background: var(--accent);
+            opacity: .10;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .stat-value {
+            font-size: 30px;
+            font-weight: 750;
+            margin-top: 12px;
+            color: var(--accent);
+        }
+
+        .stat-note {
+            color: var(--muted);
+            font-size: 11px;
+            margin-top: 5px;
+        }
+
+        .analytics-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .chart-panel h3 {
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+
+        .chart-row {
+            display: grid;
+            grid-template-columns: 105px 1fr 35px;
+            align-items: center;
+            gap: 10px;
+            margin: 16px 0;
+            font-size: 12px;
+        }
+
+        .chart-label {
+            color: var(--muted);
+        }
+
+        .bar-track {
+            height: 9px;
+            background: #26354a;
+            border-radius: 20px;
+            overflow: hidden;
+        }
+
+        .bar-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 20px;
+            transition: width .5s ease;
+        }
+
+        .chart-count {
+            text-align: right;
+            font-weight: 700;
+        }
+
+        .critical { background: #ef4444; }
+        .high { background: #f97316; }
+        .medium { background: #eab308; }
+        .low { background: #3b82f6; }
+        .informational { background: #64748b; }
+
+        .tool-nmap { background: #38bdf8; }
+        .tool-nuclei { background: #a78bfa; }
+        .tool-semgrep { background: #34d399; }
+
+        .table-panel {
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .table-toolbar {
+            padding: 16px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table-toolbar h3 {
+            font-size: 14px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filters input,
+        .filters select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 9px 11px;
+            border-radius: 7px;
+            font-size: 11px;
+            outline: none;
+        }
+
+        .filters input {
+            min-width: 190px;
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 14px 17px;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            vertical-align: middle;
+        }
+
+        th {
+            color: var(--muted);
+            background: #101a2b;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .8px;
+            font-weight: 700;
+        }
+
+        td {
+            color: #d7e1ef;
+        }
+
+        tbody tr:hover {
+            background: var(--panel-light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 9px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            background: #26354a;
+            color: #cbd5e1;
+        }
+
+        .badge.critical {
+            background: #4b1e2a;
+            color: #fda4af;
+        }
+
+        .badge.high {
+            background: #4b2b1c;
+            color: #fdba74;
+        }
+
+        .badge.medium {
+            background: #463b17;
+            color: #fde047;
+        }
+
+        .badge.low {
+            background: #172f50;
+            color: #93c5fd;
+        }
+
+        .badge.info {
+            background: #293449;
+            color: #cbd5e1;
+        }
+
+        .tool-tag {
+            display: inline-block;
+            padding: 4px 7px;
+            margin: 2px;
+            border-radius: 5px;
+            background: #26354a;
+            color: #cbd5e1;
+            font-size: 10px;
+        }
+
+        .empty {
+            color: var(--muted);
+            text-align: center;
+            padding: 28px;
+        }
+
+        .similarity {
+            color: var(--cyan);
+            font-weight: 700;
+        }
+
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 11px;
+            margin-top: 35px;
+        }
+
+        @media (max-width: 900px) {
+            .upload-grid, .analytics-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .upload-grid, .analytics-grid, .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .container {
+                width: 92%;
+                padding-top: 20px;
+            }
+        }
+    </style>
 </head>
 
 <body>
-
 <div class="container">
 
-
-<h1>
-    Security Finding Correlation Dashboard
-</h1>
-
-<div class="subtitle">
-    Upload security findings, process them,
-    remove duplicates, identify correlations,
-    and generate a consolidated report.
-</div>
-
-
-<!-- ================================================= -->
-<!-- FILE UPLOAD -->
-<!-- ================================================= -->
-
-<div class="card">
-
-    <h2>
-        Upload Security Findings
-    </h2>
-
-    <p>
-        Upload the JSON output files generated by
-        your security tools.
-    </p>
-
-    <div class="upload-grid">
-
-        <!-- NMAP -->
-
-        <div class="upload-box">
-
-            <h3>
-                Nmap
-            </h3>
-
-            <p>
-                
-    Upload Nmap JSON or XML findings.
-
-            </p>
-
-            <input
-    type="file"
-    id="nmap-file"
-    accept=".json,.xml"
->
-
-            <div
-                id="nmap-status"
-                class="file-status"
-            >
-                No file uploaded.
-            </div>
-
-        </div>
-
-
-        <!-- NUCLEI -->
-
-        <div class="upload-box">
-
-            <h3>
-                Nuclei
-            </h3>
-
-            <p>
-                Upload Nuclei JSON findings.
-            </p>
-
-            <input
-                type="file"
-                id="nuclei-file"
-                accept=".json"
-            >
-
-            <div
-                id="nuclei-status"
-                class="file-status"
-            >
-                No file uploaded.
-            </div>
-
-        </div>
-
-
-        <!-- SEMGREP -->
-
-        <div class="upload-box">
-
-            <h3>
-                Semgrep
-            </h3>
-
-            <p>
-                Upload Semgrep JSON findings.
-            </p>
-
-            <input
-                type="file"
-                id="semgrep-file"
-                accept=".json"
-            >
-
-            <div
-                id="semgrep-status"
-                class="file-status"
-            >
-                No file uploaded.
-            </div>
-
-        </div>
-
-    </div>
-
-
-    <button
-        id="upload-button"
-        onclick="uploadFiles()"
-    >
-        Upload Security Findings
-    </button>
-
-
-    <button
-        id="run-pipeline-button"
-        onclick="runPipeline()"
-    >
-        Run Security Finding Pipeline
-    </button>
-
-
-    <button
-        id="refresh-dashboard-button"
-        onclick="loadDashboard()"
-    >
-        Refresh Dashboard
-    </button>
-
-
-    <button
-        id="download-report-button"
-        onclick="downloadReport()"
-    >
-        Download JSON Report
-    </button>
-
-
-    <div
-        id="upload-message"
-        class="status"
-    ></div>
-
-    <div
-        id="pipeline-message"
-        class="status"
-    ></div>
-
-</div>
-
-
-<!-- ================================================= -->
-<!-- PIPELINE STATUS -->
-<!-- ================================================= -->
-
-<div class="card">
-
-    <h2>
-        Pipeline Status
-    </h2>
-
-    <div id="pipeline-status">
-
-        Waiting for pipeline execution...
-
-    </div>
-
-</div>
-
-
-<!-- ================================================= -->
-<!-- SUMMARY -->
-<!-- ================================================= -->
-
-<div class="card">
-
-    <h2>
-        Pipeline Summary
-    </h2>
-
-    <div class="summary-grid">
-
-        <div class="summary-card">
-
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon">🛡️</div>
             <div>
-                Original Findings
+                <div class="eyebrow">Cybersecurity Analytics Platform</div>
+                <h1>Security Finding Correlation</h1>
+                <p class="subtitle">
+                    Unified vulnerability analysis, deduplication and correlation
+                </p>
             </div>
-
-            <div
-                id="original-count"
-                class="summary-number"
-            >
-                0
-            </div>
-
         </div>
 
+        <div class="status">
+            <span class="status-dot" id="status-dot"></span>
+            <span id="pipeline-status">Dashboard ready</span>
+        </div>
+    </header>
 
-        <div class="summary-card">
-
+    <section class="section">
+        <div class="section-heading">
             <div>
-                Consolidated Findings
+                <h2>Report Ingestion</h2>
+                <p>Upload reports generated by your security testing tools.</p>
             </div>
-
-            <div
-                id="merged-count"
-                class="summary-number"
-            >
-                0
-            </div>
-
         </div>
 
+        <div class="upload-grid">
+            <div class="upload-card">
+                <div class="tool-icon">🌐</div>
+                <h3>Nmap</h3>
+                <p>Network discovery and open-port findings · JSON / XML</p>
+                <input type="file" id="nmap-file" accept=".json,.xml">
+                <div class="upload-name" id="nmap-name">No file selected</div>
+            </div>
 
-        <div class="summary-card">
+            <div class="upload-card">
+                <div class="tool-icon">🔎</div>
+                <h3>Nuclei</h3>
+                <p>Template-based vulnerability findings · JSON / JSONL</p>
+                <input type="file" id="nuclei-file" accept=".json,.jsonl">
+                <div class="upload-name" id="nuclei-name">No file selected</div>
+            </div>
 
+            <div class="upload-card">
+                <div class="tool-icon">💻</div>
+                <h3>Semgrep</h3>
+                <p>Static application security testing findings · JSON</p>
+                <input type="file" id="semgrep-file" accept=".json">
+                <div class="upload-name" id="semgrep-name">No file selected</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="primary" id="upload-button" onclick="uploadFiles()">
+                Upload Reports
+            </button>
+
+            <button class="primary" id="run-button" onclick="runPipeline()">
+                ▶ Run Security Pipeline
+            </button>
+
+            <button class="secondary" id="refresh-button" onclick="manualRefresh()">
+                ↻ Refresh Dashboard
+            </button>
+
+            <button class="success-button" onclick="downloadReport()">
+                ↓ Download JSON Report
+            </button>
+
+            <button class="danger-button" id="clear-button" onclick="clearResults()">
+                Clear All Results
+            </button>
+        </div>
+
+        <div id="message"></div>
+    </section>
+
+    <section class="section">
+        <div class="section-heading">
             <div>
-                Correlations
+                <h2>Pipeline Overview</h2>
+                <p>Summary of the latest processed security findings.</p>
             </div>
-
-            <div
-                id="correlation-count"
-                class="summary-number"
-            >
-                0
-            </div>
-
         </div>
 
-    </div>
+        <div class="stats-grid">
+            <div class="stat-card" style="--accent:#60a5fa">
+                <div class="stat-label">Original Findings</div>
+                <div class="stat-value" id="original-count">0</div>
+                <div class="stat-note">Collected from all tools</div>
+            </div>
 
-</div>
+            <div class="stat-card" style="--accent:#34d399">
+                <div class="stat-label">Consolidated Findings</div>
+                <div class="stat-value" id="consolidated-count">0</div>
+                <div class="stat-note">After duplicate merging</div>
+            </div>
 
+            <div class="stat-card" style="--accent:#fb923c">
+                <div class="stat-label">Duplicate Matches</div>
+                <div class="stat-value" id="duplicate-count">0</div>
+                <div class="stat-note">Potential duplicate pairs identified</div>
+            </div>
 
-<!-- ================================================= -->
-<!-- CONSOLIDATED FINDINGS -->
-<!-- ================================================= -->
+            <div class="stat-card" style="--accent:#a78bfa">
+                <div class="stat-label">Correlations</div>
+                <div class="stat-value" id="correlation-count">0</div>
+                <div class="stat-note">Relationships between findings</div>
+            </div>
+        </div>
+    </section>
 
-<div class="card">
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h2>Security Analytics</h2>
+                <p>Distribution of consolidated findings by severity and source tool.</p>
+            </div>
+        </div>
 
-    <h2>
-        Consolidated Findings
-    </h2>
+        <div class="analytics-grid">
+            <div class="panel chart-panel">
+                <h3>Severity Distribution</h3>
+                <div id="severity-chart"></div>
+            </div>
 
-    <div id="findings-container">
+            <div class="panel chart-panel">
+                <h3>Findings by Security Tool</h3>
+                <div id="tool-chart"></div>
+            </div>
+        </div>
+    </section>
 
-        Loading findings...
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h2>Consolidated Security Findings</h2>
+                <p>Review findings after normalization and deduplication.</p>
+            </div>
+        </div>
 
-    </div>
+        <div class="panel table-panel">
+            <div class="table-toolbar">
+                <h3>Findings Inventory</h3>
 
-</div>
+                <div class="filters">
+                    <input id="finding-search" type="text"
+                           placeholder="Search title, host or ID..."
+                           oninput="renderFindings()">
 
+                    <select id="severity-filter" onchange="renderFindings()">
+                        <option value="">All severities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                        <option value="info">Informational</option>
+                    </select>
+                </div>
+            </div>
 
-<!-- ================================================= -->
-<!-- DUPLICATES -->
-<!-- ================================================= -->
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Finding ID</th>
+                            <th>Title</th>
+                            <th>Severity</th>
+                            <th>Source Tools</th>
+                            <th>Host</th>
+                            <th>Port</th>
+                        </tr>
+                    </thead>
 
-<div class="card">
+                    <tbody id="findings-table">
+                        <tr>
+                            <td colspan="6" class="empty">
+                                No findings loaded yet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 
-    <h2>
-        Duplicate Matches
-    </h2>
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h2>Duplicate Analysis</h2>
+                <p>Findings identified as duplicates, with their similarity and context.</p>
+            </div>
+        </div>
 
-    <div id="duplicates-container">
+        <div class="panel table-panel">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Finding 1</th>
+                            <th>Finding 2</th>
+                            <th>Similarity</th>
+                            <th>Host Match</th>
+                            <th>Port Match</th>
+                            <th>Source Tools</th>
+                        </tr>
+                    </thead>
 
-        Loading duplicate matches...
+                    <tbody id="duplicates-table">
+                        <tr>
+                            <td colspan="6" class="empty">
+                                No duplicate matches loaded.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 
-    </div>
+    <section class="section">
+        <div class="section-heading">
+            <div>
+                <h2>Finding Correlations</h2>
+                <p>Explainable relationships between distinct consolidated findings.</p>
+            </div>
+        </div>
 
-</div>
+        <div class="panel table-panel">
+            <div class="table-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Finding 1</th>
+                            <th>Finding 2</th>
+                            <th>Relationship</th>
+                            <th>Host Context</th>
+                            <th>Port Context</th>
+                            <th>Source Tools</th>
+                        </tr>
+                    </thead>
 
+                    <tbody id="correlations-table">
+                        <tr>
+                            <td colspan="6" class="empty">
+                                No correlations loaded.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
 
-<!-- ================================================= -->
-<!-- CORRELATIONS -->
-<!-- ================================================= -->
-
-<div class="card">
-
-    <h2>
-        Correlations
-    </h2>
-
-    <div id="correlations-container">
-
-        Loading correlations...
-
-    </div>
-
-</div>
-
-
+    <footer class="footer">
+        Security Finding Correlation Platform · Nmap · Nuclei · Semgrep
+    </footer>
 </div>
 
 <script>
+    let findingsData = [];
+    let duplicatesData = [];
+    let correlationsData = [];
 
-
-// ========================================================
-// DISPLAY MESSAGE
-// ========================================================
-
-function showMessage(
-    elementId,
-    message,
-    type
-) {
-
-    const element =
-        document.getElementById(elementId);
-
-    element.textContent =
-        message;
-
-    element.className =
-        "status " + type;
-
-    element.style.display =
-        "block";
-}
-
-
-// ========================================================
-// UPLOAD FILES
-// ========================================================
-
-async function uploadFiles() {
-
-    const nmapFile =
-        document.getElementById(
-            "nmap-file"
-        ).files[0];
-
-
-    const nucleiFile =
-        document.getElementById(
-            "nuclei-file"
-        ).files[0];
-
-
-    const semgrepFile =
-        document.getElementById(
-            "semgrep-file"
-        ).files[0];
-
-
-    if (
-        !nmapFile &&
-        !nucleiFile &&
-        !semgrepFile
-    ) {
-
-        showMessage(
-            "upload-message",
-            "Please select at least one Security findings file",
-            "error"
-        );
-
-        return;
+    function escapeHtml(value) {
+        return String(value ?? "").replace(/[&<>"']/g, char => ({
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#39;"
+        })[char]);
     }
 
+    // Support different response formats returned by the Flask APIs.
+    function getArray(data, keys = []) {
+        if (Array.isArray(data)) return data;
 
-    const formData =
-        new FormData();
+        if (!data || typeof data !== "object") return [];
 
+        for (const key of keys) {
+            if (Array.isArray(data[key])) {
+                return data[key];
+            }
+        }
 
-    if (nmapFile) {
+        if (Array.isArray(data.results)) return data.results;
+        if (Array.isArray(data.data)) return data.data;
 
-        formData.append(
-            "nmap_file",
-            nmapFile
-        );
-
+        return [];
     }
 
+    function getIdValue(value) {
+        if (value && typeof value === "object") {
+            return value.finding_id ?? value.id ?? "";
+        }
 
-    if (nucleiFile) {
-
-        formData.append(
-            "nuclei_file",
-            nucleiFile
-        );
-
+        return value ?? "";
     }
 
+    function getId(item, first = true) {
+        if (first) {
+            return getIdValue(
+                item.finding1_id ??
+                item.finding1 ??
+                item.finding_id_1
+            );
+        }
 
-    if (semgrepFile) {
-
-        formData.append(
-            "semgrep_file",
-            semgrepFile
+        return getIdValue(
+            item.finding2_id ??
+            item.finding2 ??
+            item.finding_id_2
         );
-
     }
 
+    function getTools(item) {
+        let tools =
+            item?.source_tools ??
+            item?.source_tool ??
+            item?.tools ??
+            [];
 
-    showMessage(
-        "upload-message",
-        "Uploading files...",
-        "info"
-    );
+        if (!Array.isArray(tools)) {
+            tools = [tools];
+        }
 
+        return tools.filter(Boolean);
+    }
 
-    try {
+    function uniqueTools(...items) {
+        const result = new Map();
 
-        const response =
-            await fetch(
-                "/upload-files",
+        items.forEach(item => {
+            getTools(item || {}).forEach(tool => {
+                // Split combined source-tool values into separate tags.
+                String(tool).split(",").forEach(part => {
+                    const name = part.trim();
+                    const key = name.toLowerCase();
+
+                    if (key && !result.has(key)) {
+                        result.set(key, name);
+                    }
+                });
+            });
+        });
+
+        return [...result.values()];
+    }
+
+    function normalizeSeverity(value) {
+        const severity = String(value ?? "").toLowerCase();
+
+        if (["informational", "information", "info"].includes(severity)) {
+            return "info";
+        }
+
+        if (["critical", "high", "medium", "low"].includes(severity)) {
+            return severity;
+        }
+
+        return "unknown";
+    }
+
+    function severityBadge(value) {
+        const severity = normalizeSeverity(value);
+
+        const label = severity === "info"
+            ? "Informational"
+            : severity.charAt(0).toUpperCase() + severity.slice(1);
+
+        return `<span class="badge ${severity}">${escapeHtml(label)}</span>`;
+    }
+
+    function toolTags(tools) {
+        if (!tools.length) return "—";
+
+        return tools.map(tool =>
+            `<span class="tool-tag">${escapeHtml(tool)}</span>`
+        ).join("");
+    }
+
+    function showMessage(message, type = "success") {
+        const box = document.getElementById("message");
+        box.textContent = message;
+        box.className = type;
+    }
+
+    function setStatus(message, active = false) {
+        document.getElementById("pipeline-status").textContent = message;
+
+        document.getElementById("status-dot").style.background =
+            active ? "#facc15" : "#34d399";
+    }
+
+    function setBusy(buttonId, busy, busyText) {
+        const button = document.getElementById(buttonId);
+
+        if (busy) {
+            button.dataset.originalText = button.textContent;
+            button.textContent = busyText;
+            button.disabled = true;
+        } else {
+            button.textContent =
+                button.dataset.originalText || button.textContent;
+
+            button.disabled = false;
+        }
+    }
+
+    function resetFileInputs() {
+        ["nmap", "nuclei", "semgrep"].forEach(tool => {
+            document.getElementById(`${tool}-file`).value = "";
+            document.getElementById(`${tool}-name`).textContent =
+                "No file selected";
+        });
+    }
+
+    function resetDashboardDisplay() {
+        findingsData = [];
+        duplicatesData = [];
+        correlationsData = [];
+
+        document.getElementById("original-count").textContent = "0";
+        document.getElementById("consolidated-count").textContent = "0";
+        document.getElementById("duplicate-count").textContent = "0";
+        document.getElementById("correlation-count").textContent = "0";
+
+        document.getElementById("finding-search").value = "";
+        document.getElementById("severity-filter").value = "";
+
+        resetFileInputs();
+
+        renderFindings();
+        renderDuplicates();
+        renderCorrelations();
+        renderCharts();
+    }
+
+    ["nmap", "nuclei", "semgrep"].forEach(tool => {
+        document.getElementById(`${tool}-file`)
+            .addEventListener("change", event => {
+                const file = event.target.files[0];
+
+                document.getElementById(`${tool}-name`).textContent =
+                    file ? file.name : "No file selected";
+            });
+    });
+
+    // Upload reports.
+    async function uploadFiles() {
+        const formData = new FormData();
+
+        const fields = [
+            ["nmap_file", "nmap-file"],
+            ["nuclei_file", "nuclei-file"],
+            ["semgrep_file", "semgrep-file"]
+        ];
+
+        let count = 0;
+
+        fields.forEach(([field, elementId]) => {
+            const file = document.getElementById(elementId).files[0];
+
+            if (file) {
+                formData.append(field, file);
+                count++;
+            }
+        });
+
+        if (!count) {
+            showMessage(
+                "Please select at least one report before uploading.",
+                "error"
+            );
+            return;
+        }
+
+        setBusy("upload-button", true, "Uploading...");
+        setStatus("Uploading reports", true);
+
+        try {
+            const response = await fetch("/upload-files", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error || data.message || "Upload failed."
+                );
+            }
+
+            showMessage(
+                data.message || "Reports uploaded successfully."
+            );
+
+            setStatus("Reports uploaded");
+
+        } catch (error) {
+            showMessage(error.message, "error");
+            setStatus("Upload failed");
+
+        } finally {
+            setBusy("upload-button", false);
+        }
+    }
+
+    // Run the security finding pipeline.
+    async function runPipeline() {
+        setBusy("run-button", true, "Processing...");
+        setStatus("Running security pipeline", true);
+
+        try {
+            const response = await fetch(
+                `/run-pipeline?refresh=${Date.now()}`,
                 {
                     method: "POST",
-                    body: formData
+                    cache: "no-store"
                 }
             );
 
+            const data = await response.json();
 
-        const result =
-            await response.json();
+            if (!response.ok) {
+                throw new Error(
+                    data.error || data.message ||
+                    "Pipeline execution failed."
+                );
+            }
 
+            showMessage(
+                data.message || "Security pipeline completed successfully."
+            );
+
+            setStatus("Pipeline completed");
+
+            await refreshDashboard();
+
+        } catch (error) {
+            showMessage(error.message, "error");
+            setStatus("Pipeline failed");
+
+        } finally {
+            setBusy("run-button", false);
+        }
+    }
+
+    async function fetchData(endpoint, keys = []) {
+        const response = await fetch(
+            `${endpoint}?refresh=${Date.now()}`,
+            {
+                cache: "no-store"
+            }
+        );
 
         if (!response.ok) {
+            throw new Error(`Unable to load ${endpoint}.`);
+        }
 
-            throw new Error(
-                result.message ||
-                "Upload failed."
+        return getArray(await response.json(), keys);
+    }
+
+    // Load dashboard information from Flask APIs.
+    async function refreshDashboard() {
+        try {
+            const [
+                findings,
+                duplicates,
+                correlations,
+                summaryResponse
+            ] = await Promise.all([
+                fetchData("/findings", ["findings"]),
+                fetchData("/duplicates", [
+                    "duplicates",
+                    "duplicate_matches",
+                    "matches"
+                ]),
+                fetchData("/correlations", ["correlations"]),
+                fetch(
+                    `/pipeline-summary?refresh=${Date.now()}`,
+                    { cache: "no-store" }
+                ).then(async response => {
+                    if (!response.ok) {
+                        throw new Error(
+                            "Unable to load pipeline summary."
+                        );
+                    }
+
+                    return response.json();
+                })
+            ]);
+
+            findingsData = findings;
+            duplicatesData = duplicates;
+            correlationsData = correlations;
+
+            const summary = summaryResponse.summary || summaryResponse;
+
+            document.getElementById("original-count").textContent =
+                summary.original_findings ??
+                summary.original_count ??
+                0;
+
+            document.getElementById("consolidated-count").textContent =
+                summary.consolidated_findings ??
+                summary.consolidated_count ??
+                findingsData.length;
+
+            document.getElementById("duplicate-count").textContent =
+                summary.duplicate_matches ??
+                summary.duplicate_count ??
+                duplicatesData.length;
+
+            document.getElementById("correlation-count").textContent =
+                summary.correlations ??
+                summary.correlation_count ??
+                correlationsData.length;
+
+            renderFindings();
+            renderDuplicates();
+            renderCorrelations();
+            renderCharts();
+
+            setStatus("Dashboard updated");
+
+        } catch (error) {
+            showMessage(error.message, "error");
+            setStatus("Dashboard loading failed");
+        }
+    }
+
+    // Find a consolidated finding by its ID.
+    function findFinding(id) {
+        return findingsData.find(item =>
+            String(item.finding_id ?? item.id) === String(id)
+        );
+    }
+
+    // Normalize match values returned by the backend.
+    function matchLabel(value) {
+        if (value === true || value === 1) return "Yes";
+        if (value === false || value === 0) return "No";
+
+        if (value === null || value === undefined || value === "") {
+            return "Not available";
+        }
+
+        const normalized = String(value).trim().toLowerCase();
+
+        if (["true", "yes", "1", "matched"].includes(normalized)) {
+            return "Yes";
+        }
+
+        if (["false", "no", "0", "not matched"].includes(normalized)) {
+            return "No";
+        }
+
+        return String(value);
+    }
+
+    function formatSimilarity(value) {
+        const number = Number(value);
+
+        if (!Number.isFinite(number)) return "Not available";
+
+        const percentage = number <= 1
+            ? number * 100
+            : number;
+
+        return `${percentage.toFixed(1)}%`;
+    }
+
+    // Consolidated findings table.
+    function renderFindings() {
+        const search = document.getElementById("finding-search")
+            .value.toLowerCase();
+
+        const severityFilter =
+            document.getElementById("severity-filter").value;
+
+        const filtered = findingsData.filter(item => {
+            const text = [
+                item.finding_id,
+                item.id,
+                item.title,
+                item.host,
+                item.source_tool,
+                ...getTools(item)
+            ].join(" ").toLowerCase();
+
+            return text.includes(search) &&
+                (!severityFilter ||
+                    normalizeSeverity(item.severity) === severityFilter);
+        });
+
+        const body = document.getElementById("findings-table");
+
+        if (!filtered.length) {
+            body.innerHTML =
+                `<tr><td colspan="6" class="empty">No matching findings.</td></tr>`;
+            return;
+        }
+
+        body.innerHTML = filtered.map(item => {
+            const tools = uniqueTools(item);
+
+            return `
+                <tr>
+                    <td>${escapeHtml(item.finding_id ?? item.id ?? "—")}</td>
+                    <td>${escapeHtml(item.title ?? "Untitled finding")}</td>
+                    <td>${severityBadge(item.severity)}</td>
+                    <td>${toolTags(tools)}</td>
+                    <td>${escapeHtml(item.host ?? "Unknown")}</td>
+                    <td>${escapeHtml(item.port ?? "—")}</td>
+                </tr>
+            `;
+        }).join("");
+    }
+
+    // Duplicate analysis table.
+    function renderDuplicates() {
+        const body = document.getElementById("duplicates-table");
+
+        if (!duplicatesData.length) {
+            body.innerHTML =
+                `<tr><td colspan="6" class="empty">No duplicate matches loaded.</td></tr>`;
+            return;
+        }
+
+        body.innerHTML = duplicatesData.map(item => {
+            const id1 = getId(item, true);
+            const id2 = getId(item, false);
+
+            const first = findFinding(id1);
+            const second = findFinding(id2);
+
+            const host1 = item.host1 ?? first?.host;
+            const host2 = item.host2 ?? second?.host;
+
+            const port1 = item.port1 ?? first?.port;
+            const port2 = item.port2 ?? second?.port;
+
+            // The deduplication algorithm requires matching known host and port.
+            // If the second finding has been merged, its location may be null.
+            const hostMatch = item.host_match !== undefined
+                ? matchLabel(item.host_match)
+                : (
+                    host1 != null && host2 != null
+                        ? (
+                            String(host1).trim().toLowerCase() ===
+                            String(host2).trim().toLowerCase()
+                                ? "Yes"
+                                : "No"
+                        )
+                        : (
+                            host1 != null && !host2 && id1 && id2
+                                ? "Yes (dedup rule)"
+                                : "Not available"
+                        )
+                );
+
+            const portMatch = item.port_match !== undefined
+                ? matchLabel(item.port_match)
+                : (
+                    port1 != null && port2 != null
+                        ? (
+                            String(port1).trim() === String(port2).trim()
+                                ? "Yes"
+                                : "No"
+                        )
+                        : (
+                            port1 != null && port2 == null && id1 && id2
+                                ? "Yes (dedup rule)"
+                                : "Not available"
+                        )
+                );
+
+            const tools = uniqueTools(first, second, item);
+
+            const similarity = formatSimilarity(
+                item.similarity ?? item.similarity_score
             );
 
-        }
-
-
-        showMessage(
-            "upload-message",
-            result.message,
-            "success"
-        );
-
-
-        if (nmapFile) {
-
-            document.getElementById(
-                "nmap-status"
-            ).textContent =
-                "✓ " +
-                nmapFile.name +
-                " uploaded";
-
-        }
-
-
-        if (nucleiFile) {
-
-            document.getElementById(
-                "nuclei-status"
-            ).textContent =
-                "✓ " +
-                nucleiFile.name +
-                " uploaded";
-
-        }
-
-
-        if (semgrepFile) {
-
-            document.getElementById(
-                "semgrep-status"
-            ).textContent =
-                "✓ " +
-                semgrepFile.name +
-                " uploaded";
-
-        }
-
+            return `
+                <tr>
+                    <td>${escapeHtml(id1 || "—")}</td>
+                    <td>${escapeHtml(id2 || "—")}</td>
+                    <td class="similarity">${escapeHtml(similarity)}</td>
+                    <td>${escapeHtml(hostMatch)}</td>
+                    <td>${escapeHtml(portMatch)}</td>
+                    <td>${toolTags(tools)}</td>
+                </tr>
+            `;
+        }).join("");
     }
 
-    catch (error) {
+    // Finding correlations table.
+    function renderCorrelations() {
+        const body = document.getElementById("correlations-table");
 
-        showMessage(
-            "upload-message",
-            error.message,
-            "error"
-        );
+        if (!correlationsData.length) {
+            body.innerHTML =
+                `<tr><td colspan="6" class="empty">No correlations loaded.</td></tr>`;
+            return;
+        }
 
-    }
+        body.innerHTML = correlationsData.map(item => {
+            const id1 = getId(item, true);
+            const id2 = getId(item, false);
 
-}
+            const first = findFinding(id1);
+            const second = findFinding(id2);
 
+            const host1 = first?.host;
+            const host2 = second?.host;
+            const port1 = first?.port;
+            const port2 = second?.port;
 
-// ========================================================
-// RUN PIPELINE
-// ========================================================
-
-async function runPipeline() {
-
-    showMessage(
-        "pipeline-message",
-        "Running security finding pipeline...",
-        "info"
-    );
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/run-pipeline?refresh=" +
-                Date.now()
+            const hostContext = item.host ?? (
+                host1 && host2 && String(host1) === String(host2)
+                    ? host1
+                    : "Different / unavailable"
             );
 
-
-        const result =
-            await response.json();
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                result.message ||
-                "Pipeline execution failed."
+            const portContext = item.port ?? (
+                port1 != null &&
+                port2 != null &&
+                String(port1) === String(port2)
+                    ? port1
+                    : "Different / unavailable"
             );
 
-        }
+            const tools = uniqueTools(first, second, item);
 
-
-        showMessage(
-            "pipeline-message",
-            "Pipeline completed successfully.",
-            "success"
-        );
-
-
-        document.getElementById(
-            "pipeline-status"
-        ).textContent =
-            "Pipeline completed successfully.";
-
-
-        document.getElementById(
-            "original-count"
-        ).textContent =
-            result.original_count;
-
-
-        document.getElementById(
-            "merged-count"
-        ).textContent =
-            result.merged_count;
-
-
-        document.getElementById(
-            "correlation-count"
-        ).textContent =
-            result.correlation_count;
-
-
-        await loadDashboard();
-
-    }
-
-    catch (error) {
-
-        showMessage(
-            "pipeline-message",
-            error.message,
-            "error"
-        );
-
-
-        document.getElementById(
-            "pipeline-status"
-        ).textContent =
-            "Pipeline execution failed.";
-
-    }
-
-}
-
-
-// ========================================================
-// LOAD FINDINGS
-// ========================================================
-
-async function loadFindings() {
-
-    const response =
-        await fetch(
-            "/findings?refresh=" +
-            Date.now()
-        );
-
-
-    const findings =
-        await response.json();
-
-
-    const container =
-        document.getElementById(
-            "findings-container"
-        );
-
-
-    if (
-        !findings ||
-        findings.length === 0
-    ) {
-
-        container.innerHTML =
-            '<div class="empty">' +
-            'No consolidated findings available.' +
-            '</div>';
-
-        return;
-
-    }
-
-
-    let html = `
-
-        <table>
-
-            <thead>
-
+            return `
                 <tr>
-
-                    <th>ID</th>
-                    <th>Source Tool</th>
-                    <th>Title</th>
-                    <th>Severity</th>
-                    <th>Host</th>
-                    <th>Port</th>
-
+                    <td>${escapeHtml(id1 || "—")}</td>
+                    <td>${escapeHtml(id2 || "—")}</td>
+                    <td>${escapeHtml(
+                        item.reason ??
+                        item.relationship ??
+                        "Related findings"
+                    )}</td>
+                    <td>${escapeHtml(hostContext)}</td>
+                    <td>${escapeHtml(portContext)}</td>
+                    <td>${toolTags(tools)}</td>
                 </tr>
+            `;
+        }).join("");
+    }
 
-            </thead>
+    // Render horizontal bar charts.
+    function renderBarChart(containerId, labels, counts, classes) {
+        const container = document.getElementById(containerId);
+        const maximum = Math.max(...counts, 1);
 
-            <tbody>
+        container.innerHTML = labels.map((label, index) => `
+            <div class="chart-row">
+                <div class="chart-label">${escapeHtml(label)}</div>
 
-    `;
+                <div class="bar-track">
+                    <div class="bar-fill ${classes[index]}"
+                         style="width:${(counts[index] / maximum) * 100}%">
+                    </div>
+                </div>
 
+                <div class="chart-count">${counts[index]}</div>
+            </div>
+        `).join("");
+    }
 
-    findings.forEach(
-        finding => {
+    function renderCharts() {
+        const severityLabels = [
+            "Critical",
+            "High",
+            "Medium",
+            "Low",
+            "Informational"
+        ];
 
-            let severityClass =
-                "";
+        const severityKeys = [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+        ];
 
+        const severityCounts = severityKeys.map(key =>
+            findingsData.filter(item =>
+                normalizeSeverity(item.severity) === key
+            ).length
+        );
 
-            if (
-                finding.severity ===
-                "high"
-            ) {
+        renderBarChart(
+            "severity-chart",
+            severityLabels,
+            severityCounts,
+            [
+                "critical",
+                "high",
+                "medium",
+                "low",
+                "informational"
+            ]
+        );
 
-                severityClass =
-                    "severity-high";
+        const toolLabels = [
+            "Nmap",
+            "Nuclei",
+            "Semgrep"
+        ];
 
+        const toolCounts = toolLabels.map(tool =>
+            findingsData.filter(item =>
+                uniqueTools(item).some(value =>
+                    String(value).trim().toLowerCase() ===
+                    tool.toLowerCase()
+                )
+            ).length
+        );
+
+        renderBarChart(
+            "tool-chart",
+            toolLabels,
+            toolCounts,
+            [
+                "tool-nmap",
+                "tool-nuclei",
+                "tool-semgrep"
+            ]
+        );
+    }
+
+    // Download generated JSON report.
+    function downloadReport() {
+        window.location.href = "/download-report";
+    }
+
+    // Refresh Dashboard retains its existing destructive-reset behavior.
+    async function manualRefresh() {
+        const confirmed = confirm(
+            "Refresh Dashboard will permanently delete all uploaded input files, findings, duplicate matches, correlations and the previous JSON report. Continue?"
+        );
+
+        if (!confirmed) return;
+
+        setBusy("refresh-button", true, "Clearing...");
+        setStatus("Clearing dashboard data", true);
+
+        try {
+            const response = await fetch("/clear-results", {
+                method: "POST",
+                cache: "no-store"
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.error || data.message ||
+                    "Unable to clear dashboard data."
+                );
             }
 
-            else if (
-                finding.severity ===
-                "medium"
-            ) {
+            resetDashboardDisplay();
 
-                severityClass =
-                    "severity-medium";
+            showMessage(
+                data.message ||
+                "All dashboard data and uploaded files cleared successfully."
+            );
 
-            }
+            setStatus("Dashboard reset successfully");
 
-            else if (
-                finding.severity ===
-                "low"
-            ) {
+        } catch (error) {
+            showMessage(error.message, "error");
+            setStatus("Dashboard reset failed");
 
-                severityClass =
-                    "severity-low";
-
-            }
-
-
-            html += `
-
-                <tr>
-
-                    <td>
-                        ${finding.finding_id}
-                    </td>
-
-                    <td>
-                        ${finding.source_tool}
-                    </td>
-
-                    <td>
-                        ${finding.title}
-                    </td>
-
-                    <td class="${severityClass}">
-                        ${finding.severity}
-                    </td>
-
-                    <td>
-                        ${finding.host}
-                    </td>
-
-                    <td>
-                        ${finding.port ?? ""}
-                    </td>
-
-                </tr>
-
-            `;
-
+        } finally {
+            setBusy("refresh-button", false);
         }
-    );
-
-
-    html += `
-
-            </tbody>
-
-        </table>
-
-    `;
-
-
-    container.innerHTML =
-        html;
-
-}
-
-
-// ========================================================
-// LOAD DUPLICATES
-// ========================================================
-
-async function loadDuplicates() {
-
-    const response =
-        await fetch(
-            "/duplicates?refresh=" +
-            Date.now()
-        );
-
-
-    const duplicates =
-        await response.json();
-
-
-    const container =
-        document.getElementById(
-            "duplicates-container"
-        );
-
-
-    if (
-        !duplicates ||
-        duplicates.length === 0
-    ) {
-
-        container.innerHTML =
-            '<div class="empty">' +
-            'No duplicate matches available.' +
-            '</div>';
-
-        return;
-
     }
 
+    // Clear all results.
+    async function clearResults() {
+        const confirmed = confirm(
+            "Are you sure you want to permanently delete all findings, duplicate matches, correlations, uploaded input files and the previous JSON report?"
+        );
 
-    let html = `
+        if (!confirmed) return;
 
-        <table>
+        setBusy("clear-button", true, "Clearing...");
+        setStatus("Clearing previous results", true);
 
-            <thead>
+        try {
+            const response = await fetch("/clear-results", {
+                method: "POST",
+                cache: "no-store"
+            });
 
-                <tr>
+            const data = await response.json();
 
-                    <th>Finding 1</th>
-                    <th>Finding 2</th>
-                    <th>Similarity</th>
+            if (!response.ok) {
+                throw new Error(
+                    data.error || data.message ||
+                    "Unable to clear results."
+                );
+            }
 
-                </tr>
+            resetDashboardDisplay();
 
-            </thead>
+            showMessage(
+                data.message ||
+                "All previous results and uploaded files cleared successfully."
+            );
 
-            <tbody>
+            setStatus("Results cleared");
 
-    `;
+        } catch (error) {
+            showMessage(error.message, "error");
+            setStatus("Clear failed");
 
-
-    duplicates.forEach(
-        duplicate => {
-
-            html += `
-
-                <tr>
-
-                    <td>
-                        ${duplicate.finding1_id}
-                    </td>
-
-                    <td>
-                        ${duplicate.finding2_id}
-                    </td>
-
-                    <td>
-                        ${Number(
-                            duplicate.similarity
-                        ).toFixed(4)}
-                    </td>
-
-                </tr>
-
-            `;
-
+        } finally {
+            setBusy("clear-button", false);
         }
-    );
-
-
-    html += `
-
-            </tbody>
-
-        </table>
-
-    `;
-
-
-    container.innerHTML =
-        html;
-
-}
-
-
-// ========================================================
-// LOAD CORRELATIONS
-// ========================================================
-
-async function loadCorrelations() {
-
-    const response =
-        await fetch(
-            "/correlations?refresh=" +
-            Date.now()
-        );
-
-
-    const correlations =
-        await response.json();
-
-
-    const container =
-        document.getElementById(
-            "correlations-container"
-        );
-
-
-    if (
-        !correlations ||
-        correlations.length === 0
-    ) {
-
-        container.innerHTML =
-            '<div class="empty">' +
-            'No correlations available.' +
-            '</div>';
-
-        return;
-
     }
 
-
-    let html = `
-
-        <table>
-
-            <thead>
-
-                <tr>
-
-                    <th>Finding 1</th>
-                    <th>Finding 2</th>
-                    <th>Reason</th>
-
-                </tr>
-
-            </thead>
-
-            <tbody>
-
-    `;
-
-
-    correlations.forEach(
-        correlation => {
-
-            html += `
-
-                <tr>
-
-                    <td>
-                        ${correlation.finding1_id}
-                    </td>
-
-                    <td>
-                        ${correlation.finding2_id}
-                    </td>
-
-                    <td>
-                        ${correlation.reason}
-                    </td>
-
-                </tr>
-
-            `;
-
-        }
-    );
-
-
-    html += `
-
-            </tbody>
-
-        </table>
-
-    `;
-
-
-    container.innerHTML =
-        html;
-
-}
-
-
-// ========================================================
-// LOAD ENTIRE DASHBOARD
-// ========================================================
-
-async function loadDashboard() {
-
-    await loadFindings();
-
-    await loadDuplicates();
-
-    await loadCorrelations();
-
-}
-
-
-// ========================================================
-// DOWNLOAD REPORT
-// ========================================================
-
-function downloadReport() {
-
-    window.location.href =
-        "/download-report";
-
-}
-
-
-// ========================================================
-// INITIAL LOAD
-// ========================================================
-
-loadDashboard();
-
-
+    // Load existing dashboard data when the page opens.
+    document.addEventListener("DOMContentLoaded", function() {
+        refreshDashboard();
+    });
 </script>
-
 </body>
-
 </html>

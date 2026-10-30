@@ -6,7 +6,6 @@ correlations = get_correlations()
 
 
 print("\n========== DUPLICATE MATCHES ==========\n")
-
 for duplicate in duplicates:
     print(
         duplicate["finding1_id"],
@@ -16,10 +15,8 @@ for duplicate in duplicates:
         duplicate["similarity"]
     )
 
-
 print("\n========== CORRELATIONS ==========\n")
-
-for correlation in correlations:
+for correlation in correlations: 
     print(
         correlation["finding1_id"],
         "<->",
